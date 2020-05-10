@@ -1,0 +1,406 @@
+---
+title: "Machine learning"
+author: "Gauchet van Antwerpen"
+date: "4/29/2020"
+output: html_document
+---
+
+```{r load_libraries, message=FALSE, , echo=FALSE}
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # handy utility functions
+library(outliers) # library for identifying outliers
+library(forecast)
+library(corrplot)
+```
+# General Stats
+
+
+```{r load_local_vars, message=FALSE, , echo=FALSE}
+
+fp_local_data <- "/Users/gva/Documents/02 Werk/00 Appels en Pere/02 Projekte/02 ACCTech/09 data"
+
+my_abs_gang_grp <- readRDS(file.path(fp_local_data, "gangs1_4_abs_grp.rds"))
+
+my_over_gang_grp <- readRDS(file.path(fp_local_data, "gangs1_4_over_grp.rds"))
+
+#dat_mining <- readRDS(file.path(fp_local_data, "gangs_mining.rds"))
+
+#dat_gangs <- readRDS(file.path(fp_local_data, "gangs_all.rds"))
+
+#saveRDS(my_over_gang_grp,file.path(fp_local_data, "gangs1_4_over_grp.rds"))
+
+#saveRDS(my_abs_gang_grp,file.path(fp_local_data, "gangs1_4_abs_grp.rds"))
+
+#my_abs
+
+#my_over
+
+#summary(my_over_gang_grp)
+#summary(my_abs_gang_grp)
+
+```
+## Obtain Model
+```{r Get_model_Linear_Regression, echo=FALSE}
+
+
+my_gang_grp_1 <- my_gang_grp[my_gang_grp$GNG_NAME == "Mining Load & Haul Gang 1",]
+
+my_gang_grp_2 <- my_gang_grp[my_gang_grp$GNG_NAME == "Mining Load & Haul Gang 2",]
+
+my_gang_grp_3 <- my_gang_grp[my_gang_grp$GNG_NAME == "Mining Load & Haul Gang 3",]
+
+my_gang_grp_4 <- my_gang_grp[my_gang_grp$GNG_NAME == "Mining Load & Haul Gang 4",]
+
+
+#summary(my_over_gang_grp)
+#summary(my_abs_gang_grp)
+
+#my_gang_grp <- inner_join(my_over_gang_grp, my_abs_gang_grp)
+
+mygngs_model_1 <- lm(totl~totl_u_abs + totl_abs+year+month, data = my_gang_grp_1)
+
+#mygngs_model_2 <- lm(totl~totl_u_abs, data = my_gang_grp_2)
+
+mygngs_model_3 <- lm(totl~totl_u_abs + totl_abs+year+month, data = my_gang_grp_3)
+
+mygngs_model_4 <- lm(totl~totl_u_abs + totl_abs+year+month, data = my_gang_grp_4)
+
+# print(mygngs_model); # n_over = w*n_abs + (Intercept) = -0.2620*wt + 0.3609
+# summary(mygngs_model);
+
+summary(mygngs_model_1);
+
+summary(mygngs_model_2);
+
+summary(mygngs_model_3);
+
+summary(mygngs_model_4);
+
+
+
+#plot(x=mygngs_model_1$totl, y=mygngs_model_1$totl_u_abs, xlim = c(0, 3957), ylim = c(0,200))
+
+
+#my_gangs  <- dat_gangs;
+
+#my_over_gang <- my_over[XT_GangName %in% c("Mining Load & Haul Gang 1", #"Mining Load & Haul Gang 2", "Mining Load & Haul Gang 3", "Mining Load & #Haul Gang 4"), ]
+
+#my_abs_gang <- my_abs[GNG_NAME %in% c("Mining Load & Haul Gang 1", "Mining #Load & Haul Gang 2", "Mining Load & Haul Gang 3", "Mining Load & Haul Gang #4"), ]
+
+#my_gang_compl <- full_join(my_abs_gang, my_over_gang, by = c("GNG_NAME" = #"XT_GangName", "DateKey" = "DateKey"))
+
+#my_abs_rest <- setdiff(my_abs,my_abs_gang )
+
+
+#my_gang_compl$TotalOvertimePayHours <- #sort(my_gang_compl$TotalOvertimePayHours, decreasing = TRUE, na)
+
+
+
+#my_over_gang$DateKey <- as.Date(my_over_gang$DateKey, format = "%Y-%m-%d" ); 
+#my_over_gang$XT_GangName <- as.factor(my_over_gang$XT_GangName)
+
+#my_abs_gang$DateKey <- as.Date(my_abs_gang$DateKey, format = "%Y/%m/%d" );
+#my_abs_gang$GNG_NAME <- as.factor(my_abs_gang$GNG_NAME)
+
+#my_over_gang_grp <- my_over_gang %>%  group_by(XT_GangName, #year(my_over_gang$DateKey), month(my_over_gang$DateKey)) %>% summarise(totl #= sum(TotalOvertimePayHours))
+
+#my_abs_gang_grp <- my_abs_gang %>%  group_by(GNG_NAME, year(DateKey), #month(DateKey)) %>% summarise(totl_abs = sum(NumberOfAbsences), totl_u_abs #= sum(NumberOfUnplannedAbsences))
+
+
+
+# my_over_gang_grp$GNG_NAME <- my_over_gang_grp$XT_GangName
+
+# my_over_gang_grp$XT_GangName <- NULL
+
+#my_abs_gang_grp$`year` <- my_abs_gang_grp$`year(DateKey)`
+#my_abs_gang_grp$`month` <- my_abs_gang_grp$`month(DateKey)`
+
+#my_abs_gang_grp$`year(DateKey)` <- NULL
+#my_abs_gang_grp$`month(DateKey)` <- NULL
+
+#my_over_gang_grp$`year` <- my_over_gang_grp$`year(my_over_gang$DateKey)`
+#my_over_gang_grp$`month` <- my_over_gang_grp$`month(my_over_gang$DateKey)`
+
+#my_over_gang_grp$`year(my_over_gang$DateKey)` <- NULL
+#my_over_gang_grp$`month(my_over_gang$DateKey)` <- NULL
+
+#saveRDS(my_over_gang_grp,file.path(fp_local_data, "gangs1_4_over_grp.rds"))
+
+#saveRDS(my_abs_gang_grp,file.path(fp_local_data, "gangs1_4_abs_grp.rds"))
+
+
+# rm(list = ls());
+
+
+
+#my_gang_grp <- inner_join(my_over_gang_grp, my_abs_gang_grp, by = c("XT_GangName" = "GNG_NAME", #"year(my_over_gang$DateKey)" = "year(DateKey)", "month(my_over_gang$DateKey)" = "month(DateKey)"))
+
+#plot(my_over_gang_grp)
+
+
+
+```
+
+
+
+```{r correlations_regression, echo=FALSE}
+library(corrplot)
+
+#dat_out_gangs <- dat_gangs
+#dat_out_gangs$GNG_NAME <- trimws(dat_out_gangs$GNG_NAME)
+
+#dat_out_gangs <- dat_out_gangs  %>% select("GNG_NAME", "DateKey", "n_abs", "n_u_abs", "n_over") 
+
+#dat_out_gangs <- dat_out_gangs[GNG_NAME %in% c("Mining Load & Haul Gang 1", "Mining Load & Haul #Gang 2", "Mining Load & Haul Gang 3", "Mining Load & Haul Gang 4"), ]
+
+#dat_out_gangs$n_over <- dat_out_gangs$n_over / 8/10 # to make the hour days and assumption 10 members
+
+my_cor_min <- cor(my_gang_grp$totl, my_gang_grp$totl_abs)
+
+#my_cor_min <- cor(dat_out_gangs[,3:5])
+
+plot(my_gang_grp$totl, my_gang_grp$totl_abs)
+
+machine_out_gangs <- lm(dat_out_gangs$n_over ~ dat_out_gangs$n_abs + dat_out_gangs$n_u_abs + dat_out_gangs$n_abs:dat_out_gangs$n_u_abs )
+
+# machine_out_gangs
+
+summary(machine_out_gangs);
+
+
+```
+
+```{r t_test, echo=FALSE}
+#t.test(my_gang_grp$totl ~ my_gang_grp$totl_abs, my_gang_grp)
+
+chisq.test(my_gang_grp[2:4])
+
+#dat_out_gangs$GNG_NAME <- as.factor(dat_out_gangs$GNG_NAME)
+
+aov1 <- aov(my_gang_grp$totl ~ my_gang_grp$totl_abs, data=my_gang_grp)
+summary(aov1)
+
+```
+
+```{r Obtain_Predictions, echo=FALSE}
+
+my_gng_pred <- predict(mygngs_model, newdata = my_gangs_ml);
+
+my_gng_err <- my_gng_pred - my_gangs_ml$n_over
+
+# Compute MAE
+mae_l1_gngs <- round(mean(abs(my_gng_err)), 2);
+sprintf("MAE = %s",mae_l1_gngs);
+
+# Compute MSE
+mse_l1_gngs <- round(mean(my_gng_err^2), 2);
+sprintf("MSE = %s",mse_l1_gngs)
+
+
+
+```
+
+```{r Creating training models, echo=FALSE}
+my_gngs_trn_smpl <- sample(1:nrow(my_gangs_ml), 0.7*nrow(my_gangs_ml));
+#my_gngs_tst_smpl <- sample(1:nrow(my_gangs_ml), 0.3*nrow(my_gangs_ml))
+
+my_gng_trn <- my_gangs_ml[my_gngs_trn_smpl,]
+
+my_gng_tst <- my_gangs_ml[-my_gngs_trn_smpl,]
+
+#Training
+
+mdl_L1_trn <- lm(n_over~n_abs, data = my_gng_trn)
+
+mdl_L1_prd_trn <- predict(mdl_L1_trn, newdata = my_gng_trn);
+
+
+# Testing
+mdl_L1_tst <- lm(n_over~n_abs, data = my_gng_tst)
+
+mdl_L1_prd_tst <- predict(mdl_L1_tst, newdata = my_gng_tst);
+
+# Get errors
+errors_train <- mdl_L1_prd_trn - my_gng_trn$n_over
+errors_test <- mdl_L1_prd_tst - my_gng_tst$n_over
+
+# Compute Metrics
+mse_train <- round(mean(errors_train^2), 2);
+mae_train <- round(mean(abs(errors_train)), 2);
+
+mse_test <- round(mean(errors_test^2), 2);
+mae_test <- round(mean(abs(errors_test)), 2)
+
+# Build comparison table
+comp <- data.table(model = c("lm_1var"), 
+                   mse_train = mse_train, mae_train = mae_train,
+                   mse_test = mse_test, mae_test = mae_test);
+comp
+```
+
+```{r Predict_02, echo=FALSE}
+mdl_L1_trn <- lm(n_over~ ., data = my_gng_trn)
+
+mdl_L1_prd_trn <- predict(mdl_L1_trn, newdata = my_gng_trn);
+
+
+# Testing
+mdl_L1_tst <- lm(n_over~n_abs, data = my_gng_tst)
+
+mdl_L1_prd_tst <- predict(mdl_L1_tst, newdata = my_gng_tst);
+
+# Get errors
+errors_train <- mdl_L1_prd_trn - my_gng_trn$n_over
+errors_test <- mdl_L1_prd_tst - my_gng_tst$n_over
+
+# Compute Metrics
+mse_train <- round(mean(errors_train^2), 2);
+mae_train <- round(mean(abs(errors_train)), 2);
+
+mse_test <- round(mean(errors_test^2), 2);
+mae_test <- round(mean(abs(errors_test)), 2)
+
+# Build comparison table
+comp <- data.table(model = c("lm_1var"), 
+                   mse_train = mse_train, mae_train = mae_train,
+                   mse_test = mse_test, mae_test = mae_test);
+comp
+
+```
+
+```{r SVM, echo=FALSE}
+library(e1071); # LIBSVM
+#lm(n_over~ ., data = my_gng_trn)
+model <- svm(n_over ~ ., data = my_gng_trn)  
+
+model_cost <- svm(n_over ~ ., data = my_gng_trn, kernel="radial",
+             cost = 10);  
+#model2 <- svm(x = my_gng_trn[, -"n_over", with = F], y = my_gng_trn$n_abs);
+
+# Check model info
+#print(model);
+#print(model2)
+
+# Get model predictions
+predictions_train <- predict(model, newdata = my_gng_trn); # There is no formula here! Less explainability
+                                                      # (Accuracy-'explainability' tradeoff)
+predictions_test <- predict(model, newdata = my_gng_tst);
+
+predictions_train_2 <- predict(model_cost, newdata = my_gng_trn); # There is no formula here! Less explainability
+                                                      # (Accuracy-'explainability' tradeoff)
+predictions_test_2 <- predict(model_cost, newdata = my_gng_tst);
+
+# Get errors
+errors_train <- predictions_train - my_gng_trn$n_over;
+errors_test <- predictions_test - my_gng_tst$n_over
+
+errors_train_2 <- predictions_train_2 - my_gng_trn$n_over;
+errors_test_2 <- predictions_test_2 - my_gng_tst$n_over
+
+# Compute Metrics
+mse_train <- round(mean(errors_train^2), 2);
+mae_train <- round(mean(abs(errors_train)), 2);
+
+mse_test <- round(mean(errors_test^2), 2);
+mae_test <- round(mean(abs(errors_test)), 2);
+
+mse_train_2 <- round(mean(errors_train_2^2), 2);
+mae_train_2 <- round(mean(abs(errors_train_2)), 2);
+
+mse_test_2 <- round(mean(errors_test_2^2), 2);
+mae_test_2 <- round(mean(abs(errors_test_2)), 2);
+
+# Build comparison table
+comp <- rbind(comp,
+              data.table(model = c("standard svm"), 
+                         mse_train = mse_train, mae_train = mae_train,
+                         mse_test = mse_test, mae_test = mae_test));
+comp; 
+
+comp_2 <- rbind(comp,
+              data.table(model = c("modified svm"), 
+                         mse_train = mse_train_2, mae_train = mae_train_2,
+                         mse_test = mse_test_2, mae_test = mae_test_2));
+comp_2; # That's better
+
+```
+
+```{r hyperparameter optimization, echo=FALSE}
+c_values <- 10^seq(from = -3, to = 3, by = 1);
+eps_values <- 10^seq(from = -3, to = 0, by = 1);
+gamma_values <- 10^seq(from = -3, to = 3, by = 1);
+
+### Compute grid search
+grid_results <- data.table();
+
+for (c in c_values){
+  for (eps in eps_values){
+    for (gamma in gamma_values){
+      
+      print(sprintf("Start of c = %s - eps = %s - gamma = %s", c, eps, gamma));
+      
+      # train SVM model with a particular set of hyperparamets
+      model <- svm(n_over ~ ., data = my_gng_trn,
+                   cost = c, epsilon = eps, gamma = gamma);
+      
+      # Get model predictions
+      predictions_train <- predict(model, newdata = my_gng_trn);
+      predictions_val <- predict(model, newdata = my_gangs_ml);
+      
+      # Get errors
+      errors_train <- predictions_train - my_gng_trn$n_over;
+      errors_val <- predictions_val - my_gangs_ml$n_over;
+      
+      # Compute Metrics
+      mse_train <- round(mean(errors_train^2), 2);
+      mae_train <- round(mean(abs(errors_train)), 2);
+      
+      mse_val <- round(mean(errors_val^2), 2);
+      mae_val <- round(mean(abs(errors_val)), 2);
+      
+      # Build comparison table
+      grid_results <- rbind(grid_results,
+                    data.table(c = c, eps = eps, gamma = gamma, 
+                               mse_train = mse_train, mae_train = mae_train,
+                               mse_val = mse_val, mae_val = mae_val));
+    }
+  }
+}
+
+# View results
+View(grid_results);
+
+# Order results by increasing mse and mae
+grid_results <- grid_results[order(mse_val, mae_val)];
+
+# Check results
+View(grid_results);
+grid_results[1]; # Best hyperparameters
+grid_results[which.max(mse_train)]; # Underfitting! High bias-low variance (Bias-Variance tradeoff)
+
+# Get optimized hyperparameters
+best <- grid_results[1];
+best;
+
+```
+
+
+```{r Save, echo=FALSE}
+print("Save")
+#saveRDS(comp, file.path(fp_local_data, "svm.rds"));
+
+```
+
+
+```{r template, echo=FALSE}
+
+
+```
+
+
+```{r template2, echo=FALSE}
+
+
+```

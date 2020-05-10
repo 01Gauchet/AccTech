@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1590321348835.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5B282300",
+    "lastKnownWriteTime" : 1590321601,
+    "last_content_update" : 1590321601360,
+    "path" : "~/Documents/02 Werk/00 Appels en Pere/02 Projekte/02 ACCTech/shiny_acc/ui.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "16,10",
+        "scrollLine" : "10"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
