@@ -1,0 +1,491 @@
+---
+title: "Exploratory Data"
+author: "Gauchet van Antwerpen"
+date: "4/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+#rm(list = ls());
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_libraries, message=FALSE, , echo=FALSE}
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # handy utility functions
+library(outliers) # library for identifying outliers
+library(forecast)
+library(ggpubr)
+```
+
+```{r load_local_vars, message=FALSE, , echo=FALSE}
+
+fp_local_data <- "/Users/gva/Documents/02 Werk/00 Appels en Pere/02 Projekte/02 ACCTech/09 data"
+
+
+#my.dat.mining.all <- readRDS(file.path(fp_local_data, "gangs_all.rds"));
+
+my.dat.gangs.over_abs <- readRDS(file.path(fp_local_data, "gangs_abs_over.rds"));
+
+#saveRDS(my.dat.gangs.over_abs, file.path(fp_local_data, "gangs_abs_over.rds"));
+
+
+
+#my.dat.gangs.over_abs$my_abs$GNG_NAME
+#my.dat.gangs.over_abs$my_over$GNG_NAME <- my.dat.gangs.over_abs$my_over$XT_GangName;
+
+#my.dat.gangs.over_abs$my_over$XT_GangName <- NULL;
+
+#my.dat.gangs.over_abs$my_over$DateKey <- as.Date(my.dat.gangs.over_abs$my_over$DateKey, format = "%Y-%m-%d");
+
+#my.dat.gangs.over_abs$my_abs$DateKey <- as.Date(my.dat.gangs.over_abs$my_abs$DateKey, format = "%Y/%m/%d");
+
+#my.dat.gangs.over_abs$my_over$GNG_NAME <- as.factor(my.dat.gangs.over_abs$my_over$GNG_NAME);
+
+#my.dat.gangs.over_abs$my_abs$GNG_NAME <- as.factor(my.dat.gangs.over_abs$my_abs$GNG_NAME);
+
+#my.dat.gangs.over_abs$my_abs$n_abs <- my.dat.gangs.over_abs$my_abs$NumberOfAbsences;
+
+#my.dat.gangs.over_abs$my_abs$NumberOfAbsences <- NULL;
+
+#my.dat.gangs.over_abs$my_abs$n_u_abs <- my.dat.gangs.over_abs$my_abs$NumberOfUnplannedAbsences;
+
+#my.dat.gangs.over_abs$my_abs$NumberOfUnplannedAbsences <- NULL;
+
+#my.dat.gangs.over_abs$my_over$n_ovr_hrs <- my.dat.gangs.over_abs$my_over$TotalOvertimePayHours;
+
+#my.dat.gangs.over_abs$my_over$TotalOvertimePayHours <- NULL;
+
+```
+
+# General Stats
+
+```{r Outliers_calc, echo=FALSE}
+#my_gangs <- dat_gangs
+
+#my_mining <- dat_mining
+
+# get the z-scores for each value in absence, overtime is already focussed
+#outlier_scr_n_over <- scores(my_gangs$n_over)
+outlr_scr_n_abs <- scores(my.dat.gangs.over_abs$my_abs$n_abs);
+
+outlr_scr_n_u_abs <- scores(my.dat.gangs.over_abs$my_abs$n_u_abs);
+
+# create a logical vector the same length as outlier_scores
+# that is "TRUE" if outlier_scores is greater than 3 or
+# less than negative 3
+is_outl_n_abs <- outlr_scr_n_abs > 3 | outlr_scr_n_abs < -3;
+is_outl_n_u_abs <- outlr_scr_n_u_abs > 3 | outlr_scr_n_u_abs < -3;
+
+
+# add a column with info whether the overtime is an outlier
+my.dat.gangs.outl_n_abs <- is_outl_n_abs;
+my.dat.gangs.outl_n_u_abs <- is_outl_n_u_abs;
+
+
+
+
+# create a dataframe with only outliers
+my.dat.gangs.abs.outl <- my.dat.gangs.over_abs$my_abs[outlr_scr_n_abs > 3| outlr_scr_n_abs < -3, ];
+
+my.dat.gangs.u_abs.outl <- my.dat.gangs.over_abs$my_abs[outlr_scr_n_u_abs > 3| outlr_scr_n_u_abs < -3, ];
+
+#gang_abs_outl_01$is_outl_n_abs <- NULL
+#gang_abs_outl_01$is_outl_n_ovr <- NULL
+#gang_abs_outl_01$G1 <- NULL
+#gang_abs_outl_01$G2 <- NULL
+#gang_abs_outl_01$G3 <- NULL
+#gang_abs_outl_01$G4 <- NULL
+
+#outlier_scr_n_abs_2 <- scores(gang_abs_outl_01$n_abs)
+#is_outl_n_abs_2 <- outlier_scr_n_abs_2 > 3 | outlier_scr_n_abs_2 < -3
+#my_gangs_2 <- is_outl_n_abs_2
+#my_gangs_2$is_outl_n_abs_2 <- is_outl_n_abs_2
+
+#gang_abs_outl_02 <- gang_abs_outl_01[outlier_scr_n_abs_2 > 3| outlier_scr_n_abs_2 < -3, ]
+
+#gang_abs_outl_02$is_outl_n_abs_2 <- is_outl_n_abs_2
+
+#print("Outliers scores are satistically determined via a Z-score.")
+```
+
+Outliers for Mining Absentiesm are satistically determined via the statiscally Z-score.
+
+
+## 1 Overall summary of the COMPLETE Absenteism mining data set:
+
+```{r Summary Absenteism, echo=FALSE, warning=FALSE}
+#print("1 Overall summary of the COMPLETE mining data set:");
+#gang_abs_outl_01
+#gang_over_outl_01
+#my_gang_grp
+#gang_abs_outl_01$n_over <- NULL
+####################################Absence COMPLETE
+print(paste("2 Summary of Absence COMPLETE, data set size: ", length(my.dat.gangs.over_abs$my_abs$GNG_NAME))); 
+
+#print("Stats summary for all absence")
+
+summary(my.dat.gangs.over_abs$my_abs);
+
+```
+
+From the information above the following are observed:
+
+- High absenteism days are
+-- Admin Guesthouse
+-- Crusher Gangs 1-4
+-- Executive
+
+- Average of 1.451 days planned and 0.793 unplanned
+
+- Max days absenteism 90.000 days taken and 83.000 unplanned
+
+## 2 Overall summary of the Focussed Absenteism mining data set:
+
+```{r Summary Focussed Absenteism, echo=FALSE, warning=FALSE}
+####################################Absence GANGS
+my.dat.foc.abs <- semi_join(my.dat.gangs.over_abs$my_abs, my.dat.gangs.over_abs$my_over, by = "GNG_NAME");
+
+print(paste("Summary of focussed group absence, data set size: ", length(my.dat.foc.abs$GNG_NAME)));
+
+#print("Stats summary for focussed absence")
+
+summary(my.dat.foc.abs);
+
+
+```
+
+From the information above the following are observed:
+
+- Average of 7.582 days planned and 4.142 unplanned
+
+- Max days absenteism 41.000 days taken and 33.000 unplanned
+
+## 3 Overall summary of the Focussed Overtime mining data set:
+```{r Focussed Overtime, echo=FALSE, warning=FALSE}
+
+print(paste("Summary of overtime mining, data set size: ", length(my.dat.gangs.over_abs$my_over$GNG_NAME)));
+
+summary(my.dat.gangs.over_abs$my_over);
+```
+
+From the information above the following are observed:
+
+- Average of 58.43 hours taken
+
+- Max days overtime 1042.00 hours
+
+# Histograms
+
+## Absenteism Histograms
+```{r Histograms Abs, echo=FALSE , warning=FALSE}
+
+# Histograms for abs
+
+print("Absenteism All of mine...")
+
+ggplot(data = my.dat.gangs.over_abs$my_abs, aes(x = n_abs)) +
+geom_histogram(aes(y=..density..), colour="black", fill="white", bins = 6) +
+geom_density(alpha=.2, fill="blue") +
+labs(x = 'Absenteism', y = 'Density')
+
+
+
+# Histograms for absence
+#print("Absenteism Histogram")
+
+#print("Absenteism: All of mine")
+
+#ggplot(data = my_mining, aes(x = n_abs/1e6)) +
+#  geom_histogram(aes(y=..density..), colour="black", fill="white", bins = #12) +
+#  geom_density(alpha=.2, fill="green") +
+#  labs(x = 'Remove', y = 'Density')
+
+
+#print("Absenteism: Outliers only level")
+
+#ggplot(data = gang_abs_outl_02, aes(x = n_abs/1e6)) +
+#  geom_histogram(aes(y=..density..), colour="black", fill="white", bins = 12) +
+#  geom_density(alpha=.2, fill="green") +
+#  labs(x = '', y = 'Density')
+
+
+
+print("Histograms are highly skewed to the left which indicates outliers. Outliers is an indication of something outside the mean. Mean in this case is average hourse");
+
+```
+
+## Absenteism: Focussed Histograms
+
+```{r Histograms Abs Focussed, echo=FALSE}
+
+#print("Absenteism: Focussed")
+
+ggplot(data = my.dat.foc.abs, aes(x =n_abs)) +
+  geom_histogram(aes(y=..density..), colour="black", fill="white", bins = 12) +
+  geom_density(alpha=.2, fill="green") +
+  labs(x = 'Focussed Group', y = 'Density');
+```
+
+## Overtime: Focussed Histograms
+```{r Histograms ovr Focussed, echo=FALSE}
+
+#print("Overtime Focussed group: ")
+
+ggplot(data = my.dat.gangs.over_abs$my_over, aes(x = n_ovr_hrs)) +
+  geom_histogram(aes(y=..density..), colour="black", fill="white", bins = 12) +
+  geom_density(alpha=.2, fill="orange") +
+  labs(x = 'Overtime Focussed', y = 'Density')
+
+```
+
+```{r outliers not used, echo=FALSE}
+#my_gangs <- dat_gangs
+
+#my_mining <- dat_mining
+
+# use a box plot to see if we have outliers in the overtime column
+# of the my_gangs dataset
+#ggplot(my_gangs, aes(x = "overtime", y = n_over)) +
+#  geom_boxplot()
+
+# use a box plot to see if we have outliers in the overtime column
+# of the data_v2 dataset
+#ggplot(my_gangs, aes(x = "absence", y = n_abs)) +
+#  geom_boxplot()
+
+# look for outliers for each different GNG_NAME description
+#ggplot(my_gangs, aes(GNG_NAME, n_over)) +
+#  geom_boxplot() +
+#  coord_flip() # flip our plot so the labels are easier to read
+
+# look for outliers for each different GNG_NAME description
+#ggplot(my_gangs, aes(GNG_NAME, n_abs)) +
+#  geom_boxplot() +
+#  coord_flip() # flip our plot so the labels are easier to read
+
+```
+
+# Correlations
+
+```{r correlations, echo=FALSE, warning= FALSE}
+my.dat.foc.all <- inner_join(my.dat.gangs.over_abs$my_over,my.dat.foc.abs);
+
+
+my_corr_foc <- cor(my.dat.foc.all[,3:4])
+
+print("Standard corrplot")
+
+p <- ggplot(my.dat.foc.all, aes(x=n_ovr_hrs, y=n_abs)) +
+  geom_point(aes(col=my.dat.foc.all$GNG_NAME)) +
+  geom_smooth(method = lm) +
+  stat_cor(method = "pearson", label.x = 20)
+p
+
+print("method= loess");
+
+
+gg <- ggplot(my.dat.foc.all, aes(x=n_ovr_hrs, y=n_abs)) + 
+  geom_point(aes(col=my.dat.foc.all$GNG_NAME)) + 
+  geom_smooth(method="loess", se=F) + 
+  #xlim(c(0, 0.1)) + 
+  #ylim(c(0, 500000)) + 
+  labs(subtitle="Overtime Vs Absense", 
+       y="Absence days", 
+       x="Overtime Hours", 
+       title="Scatterplot");
+       #caption = "Source: midwest")
+
+plot(gg)
+#my.dat.foc.abs
+
+#grob_foc_abs <- grobTree(textGrob(paste("Pearson Correlation : ", round(cor(my.dat.foc.abs[,3:4]), 4)) ), gp = gpar(col = "red", fontsize = 11, fontface = "bold")); #x = 0.63, y = 0.97, hjust = 0, 
+
+#plt_grob_foc_abs <- ggplot(my.dat.foc.abs, aes(x=n_abs, y=n_u_abs)) + geom_point() + ggtitle("Absense vs Unplanned") + geom_smooth(method=lm, se=FALSE) + scale_x_continuous(name = "n_abs", limits = c(5, 15), breaks = seq(5, 15, 2)) + scale_y_continuous(name = "n_u_abs", limits = c(5,15), breaks = seq(5, 15, 2)) + annotation_custom(grob1) + theme(plot.title = element_text(hjust = 0.5))
+
+
+
+
+
+#my.dat.foc.all$n_ovr_hrs
+
+#grob_foc_all <- grobTree(textGrob(paste("Pearson Correlation : ", round(cor(my.dat.foc.all[,3:4]), 4)) ), gp = gpar(col = "red", fontsize = 11, fontface = "bold")); #x = 0.63, y = 0.97, hjust = 0, 
+
+#plt_grob_foc_over <- ggplot(my.dat.foc.all, aes(x=n_ovr_hrs, y=n_abs)) + geom_point() + ggtitle("Absense vs Unplanned") + geom_smooth(method=lm, se=FALSE) + scale_x_continuous(name = "Overtime Hours", limits = c(5, 15), breaks = seq(5, 15, 2)) + scale_y_continuous(name = "Absense days", limits = c(5,15), breaks = seq(5, 15, 2)) + annotation_custom(grob1) + theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+The following can be noted from the above correlation plots:
+- Correlation coffiecent R is defined (0 < R < 1)
+- R for overtime and absence is 0.36 wich indicate that there is a correlation
+- p stat < 2.2*e^-16
+
+
+# Showing Box Plots
+
+## Absence COMPLETE data set
+
+```{r outl_box_abs, echo=FALSE, warning=FALSE}
+#print("Detail of the COMPLETE data set: ");
+
+# look at the boxlpot of the complete mining
+#my.dat.gangs.over_abs$my_abs$abs_outl <- my.dat.gangs.abs.outl
+#my.dat.gangs.outl_n_abs
+#my.dat.gangs.outl_n_u_abs
+#print("Complete mining set")
+ggplot(my.dat.gangs.over_abs$my_abs, aes(GNG_NAME, n_abs)) +
+  geom_boxplot();# +
+  coord_flip();# +
+  #facet_wrap(~my.dat.gangs.outl_n_abs);
+
+
+print("Outlier mining set")
+
+ggplot(my.dat.gangs.abs.outl, aes(GNG_NAME, n_abs)) +
+  geom_boxplot();# +
+  coord_flip();
+
+print("Outlier focussed set")
+# look at the boxplot for overtime outliers
+ggplot(my.dat.foc.abs, aes(GNG_NAME, n_abs)) +
+  geom_boxplot()# +
+#  coord_flip() # flip our plot so the labels are easier to read
+
+
+```
+
+## Overtime FOCUSSED data set
+
+```{r foc_box, echo=FALSE}
+#print("Detail of the OUTLIER mining data set for Overtime:");
+
+
+
+# look at the boxplot for absence level one
+ggplot(my.dat.gangs.over_abs$my_over, aes(GNG_NAME, n_ovr_hrs)) +
+  geom_boxplot() +
+  coord_flip() # flip our plot so the labels are easier to read
+
+# look at the boxplot for absence level one
+#gang_abs_outl_02$n_abs <- sort(gang_abs_outl_02$n_abs, decreasing = TRUE)
+#ggplot(gang_abs_outl_02, aes(GNG_NAME, n_abs)) +
+#  geom_boxplot() +
+#  coord_flip() # flip our plot so the labels are easier to read
+```
+
+
+# Dive into Seasonality
+
+This section is based on https://towardsdatascience.com/forecasting-with-r-trends-and-seasonality-def24280e71f
+
+```{r seasonality, echo=FALSE}
+
+#library(tstools)
+#install.packages("tstools")
+#install.packages("devtools")
+#library(devtools)
+
+#my_gng_abs_out_ml
+
+
+
+#tss_abs <- ts(my.dat.gangs.over_abs$my_abs[,3], start = c(2018,1), end  = c(2020,1), frequency = 24);
+#plot(tss_abs)#ylim= c(1,1100)
+
+#tss_over <- ts(my.dat.gangs.over_abs$my_over[,3], start = c(2018,1), end  = c(2020,1), frequency = 24);
+#plot(tss_over)#, ylim= c(1,1100)
+
+#seasonplot(tss_abs)
+
+#seasonplot(tss_over)
+
+```
+
+## Decomposition
+
+```{r decomp, echo=FALSE}
+
+#print("Absence seasonality")
+
+
+my_abs_piv <- my.dat.gangs.over_abs$my_abs %>%
+  pivot_longer(cols = starts_with(c("n_")), names_to = 'Gangs', values_to = 'Value') %>%
+  group_by(DateKey) %>%
+  summarise(ValueMean = mean(as.numeric(Value)))
+
+# range(data$Date2)
+my_abs_piv_ts <- ts(data = my_abs_piv$ValueMean, frequency = 365, start = c(2018,1), end  = c(2020,1))
+
+my_decom_abs <- decompose(my_abs_piv_ts)
+
+#my_decom$trend
+
+p_seasonality_abs <- plot(my_decom_abs$trend)
+
+#print("Overtime seasonality Focussed")
+
+my_over_piv <- my.dat.gangs.over_abs$my_over %>%
+  pivot_longer(cols = starts_with(c("n_")), names_to = 'Gangs', values_to = 'Value') %>%
+  group_by(DateKey) %>%
+  summarise(ValueMean = mean(as.numeric(Value)))
+
+# range(data$Date2)
+my_over_piv_ts <- ts(data = my_over_piv$ValueMean, frequency = 365, start = c(2018,1), end  = c(2020,1));
+
+my_decom_over <- decompose(my_over_piv_ts)
+
+p_seasonality_over <- plot(my_decom_over$trend)
+
+#multiplot(p_seasonality_abs, p_seasonality_over)
+
+```
+
+From the information above it can be noted the trends of overtime vs absence are similar
+
+
+```{r multiplot, echo=FALSE}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+```
+
+
+```{r template2, echo=FALSE}
+
+
+```
