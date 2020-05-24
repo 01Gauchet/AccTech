@@ -2,6 +2,10 @@
 
 library(shiny)
 
+fp_local_data <- "/data";
+
+dat_gangs_over_abs <- readRDS(file.path(fp_local_data, "gangs_abs_over.rds"));
+
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
 
